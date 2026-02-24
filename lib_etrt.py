@@ -1,6 +1,7 @@
 from IPython.display import display, Math
 import numpy as np
 from scipy.special import exp1
+import scipy
 from discretize import CylindricalMesh
 from SimPEG import maps
 from SimPEG.electromagnetics.static import resistivity as dc
@@ -654,16 +655,16 @@ def bayesian_inversion(
     return m, cost_history, cost_data, cost_model
 
 
-# -----------------------------------------------------------------------------------------------------------------
-import scipy
-
-def CTi(t, a=7, varT=0.013):
+def CTi(
+    t: np.ndarray,
+    a: float = 7,
+    varT: float = 0.013):
     '''
     Covariance matrix for temperature data based on exponential covariogram
-    :param t: time points (hours)
+    :param t: time points (hours), shape: (nT,)
     :param a: correlation range (hours)
-    :param varT: covariance value
-    :return:  covariance matrix
+    :param varT: covariance value (degC^2)
+    :return:  covariance matrix, shape: (nT, nT)
     '''
     nt = len(t)
     covD = np.zeros((nt, nt))
@@ -677,18 +678,27 @@ def CTi(t, a=7, varT=0.013):
     return covD
 
 
-def get_Cdi(tR, tT, de, sigma_ert=0.092, sigma_trt=0.26, varT=0.013, a=7, covariogram=True, sigma_q=None):
+def get_Cdi(
+    tR: np.ndarray,
+    tT: np.ndarray,
+    de: np.ndarray,
+    sigma_ert: float = 0.092,
+    sigma_trt: float = 0.26,
+    varT: float = 0.013,
+    a: float = 7,
+    covariogram: bool =True,
+    sigma_q: bool =None):
     '''
     Get covariance matrix
-    :param tR: time points for ERT (hours)
-    :param tT: time points for TRT (hours)
-    :param de: electrode separations (m)
+    :param tR: time points for ERT (hours), shape: (nR,)
+    :param tT: time points for TRT (hours), shape: (nT,)
+    :param de: electrode separations (m), shape: (ne,)
     :param sigma_ert: measurement error for ERT
     :param sigma_trt: measurement error for TRT
     :param sigma_q: measurement error for injection rate
-    :param varT: variogram variance
-    :param covariogram: use covariogram for TRT data
-    :return:
+    :param varT: temperature covariance value (degC^2)
+    :param covariogram: use covariogram with correlated residuals for TRT data
+    :return: inversion of E-TRT covariance/precision matrix, shape: (ne*nR+nT, ne*nR+nT)
     '''
     if covariogram:
         C_ert = np.eye(len(de) * len(tR)) * sigma_ert ** 2
