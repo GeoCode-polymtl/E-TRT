@@ -1,0 +1,25 @@
+# Core scientific computing
+numpy>=1.26.0
+scipy>=1.16.0
+
+# Visualization
+matplotlib>=3.10.0
+
+# Jupyter/IPython
+IPython>=9.0.0
+jupyter>=1.1.0
+notebook>=7.4.0
+
+# Data handling
+pandas>=2.0.0
+
+# Geophysics
+discretize>=0.12.0
+simpeg>=0.25.0
+
+# Machine learning/Deep learning
+torch>=2.2.0
+
+# Package management
+setuptools>=65.0.0
+
