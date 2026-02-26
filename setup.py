@@ -10,8 +10,9 @@ setup(
     description="Electrical Thermal Response Test (E-TRT) simulation and inversion",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/E-TRT",
+    url="https://github.com/GeoCode-polymtl/E-TRT",
     packages=find_packages(),
+    license="MIT",
     python_requires=">=3.9",
     install_requires=[
         "numpy>=1.26.0",
