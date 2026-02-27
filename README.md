@@ -53,6 +53,27 @@ If you use this code or data in your research, please cite the paper:
 
 ## Installation
 
+### Option 1: Using Conda (Recommended)
+
+We provide conda environment files for easy setup. This is the recommended approach as it handles all dependencies including PyTorch.
+
+```bash
+# Clone the repository
+git clone https://github.com/GeoCode-polymtl/E-TRT
+cd E-TRT
+
+# Create environment from file (CPU version)
+conda env create -f environment.yml
+
+# Activate the environment
+conda activate etrt
+
+# Install the package in development mode
+pip install -e .
+```
+
+### Option 2: Using pip
+
 ```bash
 # Clone the repository
 git clone https://github.com/GeoCode-polymtl/E-TRT
@@ -61,7 +82,6 @@ cd E-TRT
 # Install in development mode (recommended)
 pip install -e .
 ```
-
 
 ---
 
@@ -158,12 +178,14 @@ m0 = np.r_[2.6, 2, 0.018]
 mtrue = np.r_[k, C, m]
 
 # Covariance matrices
-Cdi_trt = np.diag([1/0.26**2] * len(t_TRT))  # TRT data covariance
-Cdi_ert = np.diag([1/0.09**2] * len(t_ERT) * len(zrec))  # ERT data covariance
+Cdi_trt = np.diag([1 / 0.26 ** 2] * len(t_TRT))  # TRT data covariance
+Cdi_ert = np.diag(
+    [1 / 0.09 ** 2] * len(t_ERT) * len(zrec))  # ERT data covariance
 Cdi = np.block([
-    [Cdi_ert, np.zeros((len(t_ERT)*len(zrec), len(t_TRT)))],
-    [np.zeros((len(t_TRT), len(t_ERT)*len(zrec))), Cdi_trt]
+    [Cdi_ert, np.zeros((len(t_ERT) * len(zrec), len(t_TRT)))],
+    [np.zeros((len(t_TRT), len(t_ERT) * len(zrec))), Cdi_trt]
 ])  # Combined covariance
+
 
 # Standard TRT inversion
 def fun(m):
@@ -171,35 +193,32 @@ def fun(m):
     return dt, J[:, :2]
 
 d, Jtrt = fun(mtrue)
-m_est, *_ = bayesian_inversion(d, m0[:-1], None, Cdi_trt, fun, 10,
-                               step=0.8, doprint=True, prior=False)
-
-dinv, Jtrt = fun(m_est)
-Cm_trt = np.linalg.inv(Jtrt.T@Cdi_trt@Jtrt)
+m_est, Cm_trt, conf_trt, *_ = bayesian_inversion(fun, d, m0[:-1], Cdi=Cdi_trt,
+                                                 niter=10, step=0.8, doprint=True)
 
 print('                             k         Cs')
 print('True parameters           ', mtrue[:-1])
 print('TRT estimated parameters', m_est)
-print('TRT confidence interval', 1.96 * np.sqrt(np.diag(Cm_trt)))
-print('TRT confidence interval', 1.96 * np.sqrt(np.diag(Cm_trt))/mtrue[:-1] * 100, '%')
+print('TRT confidence interval', conf_trt)
+print('TRT confidence interval', conf_trt/mtrue[:-1] * 100, '%')
+
 
 # Joint inversion of temperature and resistivity data
 def fun(m):
-    return simulate_etrt(m[0], m[1], q, m[2], sigma_ref, rBH, t_ERT, t_TRT, 
+    return simulate_etrt(m[0], m[1], q, m[2], sigma_ref, rBH, t_ERT, t_TRT,
                          mesh, survey, simulation, getJ=True,
                          sigma_water=sigmaw_ref)
 
 d, J = fun(mtrue)
-m_est, *_ = bayesian_inversion(d, m0, None, Cdi, fun, 10,
-                           step=0.8, doprint=True, prior=False)
-dinv, Jetrt = fun(m_est)
-Cm_etrt = np.linalg.inv(Jetrt.T@Cdi@Jetrt)
+m_est, Cm_etrt, conf_etrt, *_  = bayesian_inversion(fun, d, m0, Cdi=Cdi,
+                                                    niter=5, step=0.8, 
+                                                    doprint=True)
 
 print('                               k         Cs         m')
-print('True parameters           ', m_est)
+print('True parameters           ', mtrue)
 print('E-TRT estimated parameters', m_est)
-print('E-TRT confidence interval ', 1.96 * np.sqrt(np.diag(Cm_etrt)))
-print('E-TRT confidence interval ', 1.96 * np.sqrt(np.diag(Cm_etrt))/mtrue * 100, '%')
+print('E-TRT confidence interval ', conf_etrt)
+print('E-TRT confidence interval ', conf_etrt/mtrue * 100, '%')
 
 ```
 
