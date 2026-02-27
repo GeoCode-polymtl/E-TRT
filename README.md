@@ -158,27 +158,31 @@ m0 = np.r_[2.6, 2, 0.018]
 mtrue = np.r_[k, C, m]
 
 # Covariance matrices
-Cdi_trt = np.diag([1/0.26**2] * len(t_TRT))  # TRT data covariance
-Cdi_ert = np.diag([1/0.09**2] * len(t_ERT) * len(zrec))  # ERT data covariance
+Cdi_trt = np.diag([1 / 0.26 ** 2] * len(t_TRT))  # TRT data covariance
+Cdi_ert = np.diag(
+    [1 / 0.09 ** 2] * len(t_ERT) * len(zrec))  # ERT data covariance
 Cdi = np.block([
-    [Cdi_ert, np.zeros((len(t_ERT)*len(zrec), len(t_TRT)))],
-    [np.zeros((len(t_TRT), len(t_ERT)*len(zrec))), Cdi_trt]
+    [Cdi_ert, np.zeros((len(t_ERT) * len(zrec), len(t_TRT)))],
+    [np.zeros((len(t_TRT), len(t_ERT) * len(zrec))), Cdi_trt]
 ])  # Combined covariance
+
 
 # Standard TRT inversion
 def fun(m):
     dt, J = ICS(rBH, t_TRT * 3600, q, m[0], m[1], rBH, getJ=True)
     return dt, J[:, :2]
 
+
 d, Jtrt = fun(mtrue)
-m_est, Cm_trt, conf_trt, *_ = bayesian_inversion(d, m0[:-1], None, Cdi_trt, fun, 10,
-                               step=0.8, doprint=True, prior=False)
+m_est, Cm_trt, conf_trt, *_ = bayesian_inversion(fun, d, m0[:-1], Cdi_trt, None,
+                                                 10, step=0.8, doprint=True)
 
 print('                             k         Cs')
 print('True parameters           ', mtrue[:-1])
 print('TRT estimated parameters', m_est)
 print('TRT confidence interval', conf_trt)
-print('TRT confidence interval', conf_trt/mtrue[:-1] * 100, '%')
+print('TRT confidence interval', conf_trt / mtrue[:-1] * 100, '%')
+
 
 # Joint inversion of temperature and resistivity data
 def fun(m):
@@ -186,15 +190,16 @@ def fun(m):
                          mesh, survey, simulation, getJ=True,
                          sigma_water=sigmaw_ref)
 
+
 d, J = fun(mtrue)
-m_est, Cm_etrt, conf_etrt, *_  = bayesian_inversion(d, m0, None, Cdi, fun, 5,
-                           step=0.8, doprint=True, prior=False)
+m_est, Cm_etrt, conf_etrt, *_ = bayesian_inversion(fun, d, m0, Cdi, None, 5,
+                                                   step=0.8, doprint=True)
 
 print('                               k         Cs         m')
 print('True parameters           ', mtrue)
 print('E-TRT estimated parameters', m_est)
 print('E-TRT confidence interval ', conf_etrt)
-print('E-TRT confidence interval ', conf_etrt/mtrue * 100, '%')
+print('E-TRT confidence interval ', conf_etrt / mtrue * 100, '%')
 
 ```
 

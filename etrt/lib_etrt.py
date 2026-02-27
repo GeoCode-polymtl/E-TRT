@@ -567,18 +567,16 @@ def ICS(
         DT = _ICS(r, t, q, k, c, rbh, device, getJ)
         return DT.cpu().numpy()
 
-def bayesian_inversion(
-    d: np.ndarray,
-    m0: np.ndarray,
-    Cmi: np.ndarray,
-    Cdi: np.ndarray,
-    fun: callable,
-    niter: int,
-    step: float = 1,
-    prior: bool= True,
-    doprint: bool = False,
-    minit: np.ndarray = None
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def bayesian_inversion(fun: callable,
+                       d: np.ndarray,
+                       m0: np.ndarray,
+                       Cdi: np.ndarray = None,
+                       Cmi: np.ndarray = None,
+                       niter: int = 5,
+                       step: float = 1,
+                       doprint: bool = False,
+                       minit: np.ndarray = None) \
+        -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Perform Bayesian linearized inversion using the Gauss-Newton method.
 
@@ -613,7 +611,6 @@ def bayesian_inversion(
                     d_pred has shape (nd,) and J has shape (nd, nm)
     :param niter:   Number of iterations
     :param step:    Step length for update (default: 1.0, full step)
-    :param prior:   If True, include prior model in the inversion
     :param doprint: If True, print misfit at each iteration
     :param minit:   Initial model parameters, shape: (nm,). If None, uses m0
 
@@ -627,6 +624,12 @@ def bayesian_inversion(
     """
     if minit is None:
         minit = m0
+    if Cdi is None:
+        Cdi = np.eye(len(d))
+    prior = True
+    if Cmi is None:
+        Cmi = 0
+        prior = False
     m = minit.copy()
     cost_history = np.zeros(niter)
     cost_data = np.zeros(niter)
@@ -642,28 +645,20 @@ def bayesian_inversion(
         if prior:
             r_m = m - m0
             cost_model[i] = r_m.T @ Cmi @ r_m
-            cost_history[i] = cost_data[i] + cost_model[i]
-            Hessian = J.T @ Cdi @ J + Cmi
-            m = m - step * np.linalg.inv(Hessian) @ (J.T @ Cdi @ r_d + Cmi @ r_m)
-            if doprint:
-                print(f"iter {i}: cost = {cost_history[i]:.6e} "
-                      f"(data = {cost_data[i]:.6e}, model = {cost_model[i]:.6e}) "
-                      f"model_params = {m}")
-        else:
-            cost_history[i] = cost_data[i]
-            Hessian = J.T @ Cdi @ J
-            m = m - step * np.linalg.inv(Hessian) @ (J.T @ Cdi @ r_d)
-            if doprint:
-                print(f"iter {i}: cost = {cost_history[i]:.6e} "
-                      f"(data = {cost_data[i]:.6e}) "
-                      f"model_params = {m}")
+        cost_history[i] = cost_data[i] + cost_model[i]
+        Hessian = J.T @ Cdi @ J + Cmi
+        r = J.T @ Cdi @ r_d
+        if prior:
+            r += Cmi @ r_m
+        m = m - step * np.linalg.inv(Hessian) @ r
+        if doprint:
+            print(f"iter {i}: cost = {cost_history[i]:.3e} "
+                  f"(data = {cost_data[i]:.3e}, model = {cost_model[i]:.3e}) "
+                  f"m = {m}")
 
     # Compute posterior covariance matrix at final iteration
     dmod, J = fun(m)
-    if prior:
-        Cm_post = np.linalg.inv(J.T @ Cdi @ J + Cmi)
-    else:
-        Cm_post = np.linalg.inv(J.T @ Cdi @ J)
+    Cm_post = np.linalg.inv(J.T @ Cdi @ J + Cmi)
 
     # Compute 95% confidence intervals (1.96 × standard deviation)
     conf_95 = 1.96 * np.sqrt(np.diag(Cm_post))
