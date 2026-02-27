@@ -171,35 +171,30 @@ def fun(m):
     return dt, J[:, :2]
 
 d, Jtrt = fun(mtrue)
-m_est, *_ = bayesian_inversion(d, m0[:-1], None, Cdi_trt, fun, 10,
+m_est, Cm_trt, conf_trt, *_ = bayesian_inversion(d, m0[:-1], None, Cdi_trt, fun, 10,
                                step=0.8, doprint=True, prior=False)
-
-dinv, Jtrt = fun(m_est)
-Cm_trt = np.linalg.inv(Jtrt.T@Cdi_trt@Jtrt)
 
 print('                             k         Cs')
 print('True parameters           ', mtrue[:-1])
 print('TRT estimated parameters', m_est)
-print('TRT confidence interval', 1.96 * np.sqrt(np.diag(Cm_trt)))
-print('TRT confidence interval', 1.96 * np.sqrt(np.diag(Cm_trt))/mtrue[:-1] * 100, '%')
+print('TRT confidence interval', conf_trt)
+print('TRT confidence interval', conf_trt/mtrue[:-1] * 100, '%')
 
 # Joint inversion of temperature and resistivity data
 def fun(m):
-    return simulate_etrt(m[0], m[1], q, m[2], sigma_ref, rBH, t_ERT, t_TRT, 
+    return simulate_etrt(m[0], m[1], q, m[2], sigma_ref, rBH, t_ERT, t_TRT,
                          mesh, survey, simulation, getJ=True,
                          sigma_water=sigmaw_ref)
 
 d, J = fun(mtrue)
-m_est, *_ = bayesian_inversion(d, m0, None, Cdi, fun, 10,
+m_est, Cm_etrt, conf_etrt, *_  = bayesian_inversion(d, m0, None, Cdi, fun, 5,
                            step=0.8, doprint=True, prior=False)
-dinv, Jetrt = fun(m_est)
-Cm_etrt = np.linalg.inv(Jetrt.T@Cdi@Jetrt)
 
 print('                               k         Cs         m')
-print('True parameters           ', m_est)
+print('True parameters           ', mtrue)
 print('E-TRT estimated parameters', m_est)
-print('E-TRT confidence interval ', 1.96 * np.sqrt(np.diag(Cm_etrt)))
-print('E-TRT confidence interval ', 1.96 * np.sqrt(np.diag(Cm_etrt))/mtrue * 100, '%')
+print('E-TRT confidence interval ', conf_etrt)
+print('E-TRT confidence interval ', conf_etrt/mtrue * 100, '%')
 
 ```
 
