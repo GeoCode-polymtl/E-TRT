@@ -3,11 +3,11 @@ import numpy as np
 from scipy.special import exp1
 import scipy
 from discretize import CylindricalMesh
-from SimPEG import maps
-from SimPEG.electromagnetics.static import resistivity as dc
-from SimPEG import SolverLU as Solver
-from SimPEG import utils
-from SimPEG.electromagnetics.static.utils import (
+from simpeg import maps
+from simpeg.electromagnetics.static import resistivity as dc
+from simpeg import SolverLU as Solver
+from simpeg import utils
+from simpeg.electromagnetics.static.utils import (
     apparent_resistivity_from_voltage, geometric_factor
 )
 import torch
@@ -160,7 +160,7 @@ def ert_setup(
     xyz_rxM = utils.ndgrid(np.r_[0.0], np.r_[0.0], zrec)
     receivers = dc.receivers.Pole(xyz_rxM)
     sources = dc.sources.Pole([receivers], np.array([0.0, 0.0, 0.0]))
-    survey = dc.Survey([sources], survey_geometry="borehole", survey_type="pole-pole")
+    survey = dc.Survey([sources], survey_geometry="borehole")
     map = maps.IdentityMap(mesh)
     simulation = dc.simulation.Simulation3DCellCentered(
         mesh, survey=survey, sigmaMap=map, solver=Solver, bc_type='Dirichlet')

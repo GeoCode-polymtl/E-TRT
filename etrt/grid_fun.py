@@ -274,7 +274,7 @@ def plot_grid_field(phi, Rtype, Ttype, title, CC, kk, mm, showERT=True, show=Tru
         # Vertical colorbar on the right
         cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
         cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical')
-        cbar.set_label('$\phi_R$', fontsize=12)
+        cbar.set_label(r'$\phi_R$', fontsize=12)
 
         plt.show()
 
