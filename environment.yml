@@ -1,0 +1,35 @@
+name: etrt
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+dependencies:
+  # Python version
+  - python=3.12
+
+  # Core scientific computing
+  - numpy>=1.26.0,<2.0
+  - scipy>=1.16.0
+
+  # Visualization
+  - matplotlib>=3.10.0
+
+  # Jupyter/IPython
+  - ipython>=9.0.0
+  - jupyter>=1.1.0
+  - notebook>=7.4.0
+  - jupyterlab>=4.0.0
+
+  # Data handling
+  - pandas>=2.0.0
+
+  # Package management
+  - setuptools>=65.0.0
+  - pip>=23.0.0
+
+  # Geophysics
+  - simpeg>=0.25.0
+
+  # PyTorch (CPU version for macOS - from official PyTorch channel)
+  - pytorch::pytorch
+

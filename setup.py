@@ -15,7 +15,7 @@ setup(
     license="MIT",
     python_requires=">=3.9",
     install_requires=[
-        "numpy>=1.26.0",
+        "numpy>=1.26.0,<2.0",
         "scipy>=1.16.0",
         "matplotlib>=3.10.0",
         "IPython>=9.0.0",
@@ -26,11 +26,9 @@ setup(
         "torch>=2.2.0",
     ],
     extras_require={
-        "dev": [
-            "pytest>=6.2.0",
-            "pytest-cov>=2.12.0",
-            "black>=21.5b0",
-            "flake8>=3.9.0",
+        "solvers": [
+            "python-mumps>=0.3.0",
+            "pydiso>=0.1.0",
         ],
     },
     classifiers=[

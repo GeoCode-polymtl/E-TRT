@@ -6,6 +6,15 @@ from discretize import CylindricalMesh
 from simpeg import maps
 from simpeg.electromagnetics.static import resistivity as dc
 from simpeg import SolverLU as Solver
+try:
+    from pymatsolver import Pardiso as Solver_Pardiso
+except ImportError:
+    Solver_Pardiso = None
+try:
+    from pymatsolver import Mumps as Solver_Mumps
+except ImportError:
+    Solver_Mumps = None
+
 from simpeg import utils
 from simpeg.electromagnetics.static.utils import (
     apparent_resistivity_from_voltage, geometric_factor
@@ -119,7 +128,8 @@ def dt2sigma(
 
 def ert_setup(
     zrec: np.ndarray,
-    mesh_selection: Union[str, tuple] = "fast"
+    mesh_selection: Union[str, tuple] = "fast",
+    solver = "LU"
 ):
     """
     Initialize the ERT modeling for pole-pole borehole measurements with
@@ -129,12 +139,30 @@ def ert_setup(
                            shape: (nrec,)
     :param mesh_selection: Selection of the mesh quality. Either "fast" or
                            "accurate", or a tuple (hr, hz) for custom grid
+    solver:                 Linear solver to use for the forward problem.
+                            Default is "LU".
 
     :return:
         mesh       : SimPEG Cylindrical mesh
         simulation : SimPEG simulation object
         survey     : SimPEG survey object
     """
+
+    if solver == "LU":
+        solver = Solver
+    elif solver == "pardiso":
+        if Solver_Pardiso is None:
+            raise ImportError("Pardiso solver not available. Please install "
+                              "pymatsolver with Pardiso support.")
+        solver = Solver_Pardiso
+    elif solver == "mumps":
+        if Solver_Mumps is None:
+            raise ImportError("Mumps solver not available. Please install "
+                              "pymatsolver with Mumps support.")
+        solver = Solver_Mumps
+    else:
+        solver = Solver
+
 
     if isinstance(mesh_selection, (list, tuple)):
         hr, hz = mesh_selection
@@ -163,7 +191,7 @@ def ert_setup(
     survey = dc.Survey([sources], survey_geometry="borehole")
     map = maps.IdentityMap(mesh)
     simulation = dc.simulation.Simulation3DCellCentered(
-        mesh, survey=survey, sigmaMap=map, solver=Solver, bc_type='Dirichlet')
+        mesh, survey=survey, sigmaMap=map, solver=solver, bc_type='Dirichlet')
 
     return mesh, simulation, survey
 

@@ -53,6 +53,27 @@ If you use this code or data in your research, please cite the paper:
 
 ## Installation
 
+### Option 1: Using Conda (Recommended)
+
+We provide conda environment files for easy setup. This is the recommended approach as it handles all dependencies including PyTorch.
+
+```bash
+# Clone the repository
+git clone https://github.com/GeoCode-polymtl/E-TRT
+cd E-TRT
+
+# Create environment from file (CPU version)
+conda env create -f environment.yml
+
+# Activate the environment
+conda activate etrt
+
+# Install the package in development mode
+pip install -e .
+```
+
+### Option 2: Using pip
+
 ```bash
 # Clone the repository
 git clone https://github.com/GeoCode-polymtl/E-TRT
@@ -61,7 +82,6 @@ cd E-TRT
 # Install in development mode (recommended)
 pip install -e .
 ```
-
 
 ---
 
