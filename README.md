@@ -27,10 +27,9 @@ By leveraging the temperature-sensitivity of electrical resistivity, E-TRT provi
 
 - **50-70% reduction in Cs uncertainty** (synthetic experiments)  
 - **Stable field-scale estimates** with low uncertainties:
-   - Thermal conductivity (k): 3.8% uncertainty
-   - Volumetric heat capacity (Cs): 12.4% uncertainty
-   - Temperature-resistivity coupling (m): 4.7% uncertainty
-
+   - Thermal conductivity (k)
+   - Volumetric heat capacity (Cs)
+   - Temperature-resistivity coupling (m)
 - **Field validation** on a standing column well in Varennes, Canada
 
 ## Citation
